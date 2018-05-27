@@ -1,5 +1,7 @@
 #include <EEPROM.h>
+#include <SoftwareSerial.h>
 
+SoftwareSerial mySerial(12, 11); // RX, TX
 
 // Some general configuration data for the Serial communication
 const long SerialTimeout      = 500;
@@ -102,14 +104,15 @@ void send_message( byte type, byte len, const byte *vars) {
   
   // outgoing buffer is ready - we can send it
   for (byte j = 0; j<=i; j++) {
-    Serial.write( outgoingBuffer[j]);
+    mySerial.write(outgoingBuffer[j]);
+Serial.println(outgoingBuffer[j]);
   }
 }
 
 // Got an error message from DCU - last available message needs to be resent.
 void resend_last_message() {
   for (byte i = 0; i<(outgoingBuffer[2]+4); i++) {
-    Serial.write( outgoingBuffer[i]);
+    mySerial.write(outgoingBuffer[i]);
   }
 }
 
@@ -154,32 +157,32 @@ void read_message() {
   unsigned long timeout_counter = millis();
   byte first_char = 0;
   incomingMsg.type = 0;
-  if (Serial.available() > 0) {
+  if (mySerial.available() > 0) {
     
     // Wait for a message start character
-    first_char = Serial.read();
-    while ( (first_char != MSG_START_CHAR ) && ( millis()-timeout_counter>MessageTimeout ) ) { first_char = Serial.read(); }
+    first_char = mySerial.read();
+    while ( (first_char != MSG_START_CHAR ) && ( millis()-timeout_counter>MessageTimeout ) ) { first_char = mySerial.read(); }
     if ( first_char == MSG_START_CHAR ) {
 
-//Serial.println("ZZZ");
-//Serial.println("X");
-      byte len = Serial.readBytesUntil( MSG_END_CHAR, incomingBuffer, 255 );
+Serial.println("ZZZ");
+Serial.println("X");
+      byte len = mySerial.readBytesUntil( MSG_END_CHAR, incomingBuffer, 255 );
       if ( len > 0 ) {
 
-//Serial.println(char(incomingBuffer[0]) );
-//Serial.println(char(incomingBuffer[1]) );
-//Serial.println(char(incomingBuffer[2]) );
-//delay(1000);
-//Serial.println(char(incomingBuffer[3]) );
-//Serial.println(char(len));
-//Serial.println( char(incomingBuffer[1]+3) );
+Serial.println(char(incomingBuffer[0]) );
+Serial.println(char(incomingBuffer[1]) );
+Serial.println(char(incomingBuffer[2]) );
+delay(1000);
+Serial.println(char(incomingBuffer[3]) );
+Serial.println(char(len));
+Serial.println( char(incomingBuffer[1]+3) );
 
       // check lenght
         while (((incomingBuffer[1]+3)>len) && (millis()-timeout_counter<MessageTimeout))
         {
 //Serial.println("XXX");
           byte tmp_inBuf[255];
-          byte len2 = Serial.readBytesUntil( (char) MSG_END_CHAR, tmp_inBuf, 255 );
+          byte len2 = mySerial.readBytesUntil( (char) MSG_END_CHAR, tmp_inBuf, 255 );
           if ((len2+len)>255) {send_error_message(MSGSUBTYPE_MSG_OVERFLOW);}
           else {
             for (byte i=0; i<len2; i++) {
@@ -250,6 +253,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) { ; }
   Serial.setTimeout( SerialTimeout );
+  mySerial.begin(9600);
+
   v_CRCretries = CRCretries;
 // Serial.println( "test" );
   // Read the  registration ID saved in the EEPROM - if available  else the device is NEW
@@ -258,12 +263,13 @@ void setup() {
   int address = 0;
   for (int i = 0 ; i < registration_bytes; i++) {
     reg_id[i] = EEPROM.read(address);
-    if ( reg_id[i] != 0 ) { newdevice = false; }     // device is considered 'blank' if the first 6 bytes are '0'
+    if ( reg_id[i] != 0 ) { newdevice = false; Serial.println("blank device"); }     // device is considered 'blank' if the first 6 bytes are '0'
   }
 
   // Let's wait 2 seconds if the DCU sends us a greeting
   wait_for_message( 2000 );
   while ( incomingMsg.type != MSGTYPE_HELLO ) {
+Serial.println("No HELLO message - sending device reset messagef");
     // we did not receive an HELLO message. maybe the DCU thinks we are in 'running mode' and not 'setup mode'
     // Let's inform the DCU we have been resetted.
     // this is also the way to inform the DCU of our existence for new devices
