@@ -19,7 +19,7 @@ I started this project with a plants watering system… But I will extend it on 
 -	Gardening watering systems
 -	Wherever my imagination takes me
 
-#H Plug and Play?
+# Plug and Play?
 The architecture has been set up to enable registered devices to be moved and controlled from different controlling units without losing their configuration information or status. However, including and setting up a new device can be cumbersome, as all MCU connected pins and what they will be controlling needs to be known to the central unit.
 
 To overcome this, the protocol permits the use of the device EEPROM to store and retrieve the specific connected device information. This will allow anyone to develop (and sell) devices that will announce their make / model or pin layout when connected to the central unit, therefore integrating its capabilities in an automatic way, leveraging on the capabilities of the platform.
@@ -28,7 +28,7 @@ The MCU discovery function will run on each DCU and look for additional MCUs on 
 
 The experience must get as close as possible to this: You have one or more installed DCUs (e.g. raspberry that control some devices). You buy a new device and power it on. The DCU sees there is a new Bluetooth device in range, and asserts it has uart capabilities. it connects to the device and see if it responds to the HELLO message. It asks the user if this is a new device to add, and based on make / model, it downloads all necessary device configurations and frontend plugins. You can start to use the device right away, and have it integrated in the frontend apps.
 
-#H Terms explained
+# Terms explained
 MCU – Micro Controller Unit – the actual microcontroller with any software running on it
 DCU – Device Control Unit – microcontroller driver running on a cpu based system (arm/x386)
 spDCU – Specific Purpose DCU. Custom DCU implementing the controls of a proprietary device
