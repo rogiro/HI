@@ -29,12 +29,12 @@ The MCU discovery function will run on each DCU and look for additional MCUs on 
 The experience must get as close as possible to this: You have one or more installed DCUs (e.g. raspberry that control some devices). You buy a new device and power it on. The DCU sees there is a new Bluetooth device in range, and asserts it has uart capabilities. it connects to the device and see if it responds to the HELLO message. It asks the user if this is a new device to add, and based on make / model, it downloads all necessary device configurations and frontend plugins. You can start to use the device right away, and have it integrated in the frontend apps.
 
 # Terms explained
-MCU – Micro Controller Unit – the actual microcontroller with any software running on it
-DCU – Device Control Unit – microcontroller driver running on a cpu based system (arm/x386)
-spDCU – Specific Purpose DCU. Custom DCU implementing the controls of a proprietary device
-CCU – Central Control Unit which is composed of
-	CCU RU – Registration Unit
-	CCU QH – Queue Handler
-	CCU RE – REST Engine
-	CCU Backend – Communication bus connecting the CCU elements together
-	CCU DB – Database backend for persistence
+-	MCU – Micro Controller Unit – the actual microcontroller with any software running on it
+-	DCU – Device Control Unit – microcontroller driver running on a cpu based system (arm/x386)
+-	spDCU – Specific Purpose DCU. Custom DCU implementing the controls of a proprietary device
+-	CCU – Central Control Unit which is composed of
+	-	CCU RU – Registration Unit
+	-	CCU QH – Queue Handler
+	-	CCU RE – REST Engine
+	-	CCU Backend – Communication bus connecting the CCU elements together
+	-	CCU DB – Database backend for persistence
