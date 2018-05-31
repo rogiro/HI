@@ -205,7 +205,7 @@ int main (void)
           stay_alive = 0;
           break;
 
-        //      default :
+        default : ;
 
       }
     }

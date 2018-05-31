@@ -202,7 +202,12 @@ void  main()
         break; */
 
       case MSG_RU_SHUTDOWN : ;
-        write_fifo(fifo_db, in_msg, in_read_char );
+        memset(out_msg, 0, sizeof(int));
+        out_msg[sizeof(int)] = in_msg[0];
+        out_msg[(sizeof(int)+1)] = 0;
+        printf("setting messgae for DB to %i %i %i %i %i %i\n", out_msg[0],
+          out_msg[1], out_msg[2], out_msg[3], out_msg[4], out_msg[5] );
+        write_fifo(fifo_db, out_msg, 6 );
         char* kill_msg = malloc( 20 );
         memset((void*)kill_msg, 0, 2);
 //        write_fifo(fifo_qh, kill_msg, 10 );
