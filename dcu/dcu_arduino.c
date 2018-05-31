@@ -24,10 +24,10 @@
 
 /* baudrate settings are defined in <asm/termbits.h>, which is
    included by <termios.h> */
-#define BAUDRATE B9600            
+#define BAUDRATE B9600
 
 /* change this definition for the correct port */
-#define MCUDEVICE "/dev/ttyUSB3"
+#define MCUDEVICE "/dev/ttyACM0"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 
 
@@ -85,11 +85,11 @@ unsigned char registration_id[REGISTRATION_BYTES];
 //}
 
 const unsigned char CRC7_POLY = 0x91;
- 
+
 unsigned char getCRC(unsigned char message[], unsigned char length)
 {
   unsigned char i, j, crc = 0;
- 
+
   for (i = 0; i < length; i++)
   {
     crc ^= message[i];
@@ -102,7 +102,7 @@ unsigned char getCRC(unsigned char message[], unsigned char length)
   }
   return crc;
 }
- 
+
 /*int main()
 {
   // create a message array that has one extra byte to hold the CRC:
@@ -116,17 +116,17 @@ struct termios oldtio;
 int setup_serial_comm() {
 	int    ret_fd;
 	int    c;
-       /* 
+       /*
           Open modem device for reading and writing and not as controlling tty
           because we don't want to get killed if linenoise sends CTRL-C.
         */
-         ret_fd = open(MCUDEVICE, O_RDWR | O_NONBLOCK ); 
+         ret_fd = open(MCUDEVICE, O_RDWR | O_NONBLOCK );
          if (ret_fd <0) {perror(MCUDEVICE); exit(-1); }
-        
+
          tcgetattr(ret_fd,&oldtio); /* save current serial port settings */
          bzero(&newtio, sizeof(newtio)); /* clear struct for new port settings */
-        
-        /* 
+
+        /*
           BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
           CRTSCTS : output hardware flow control (only used if the cable has
                     all necessary lines. See sect. 7 of Serial-HOWTO)
@@ -135,7 +135,7 @@ int setup_serial_comm() {
           CREAD   : enable receiving characters
         */
          newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-         
+
         /*
           IGNPAR  : ignore bytes with parity errors
           ICRNL   : map CR to NL (otherwise a CR input on the other computer
@@ -143,24 +143,24 @@ int setup_serial_comm() {
           otherwise make device raw (no other input processing)
         */
          newtio.c_iflag = 0;
-         
+
         /*
          Raw output.
         */
          newtio.c_oflag = 0;
-         
+
         /*
           ICANON  : enable canonical input
           disable all echo functionality, and don't send signals to calling program
         */
          newtio.c_lflag = 0;
-         
-        /* 
-          initialize all control characters 
+
+        /*
+          initialize all control characters
           default values can be found in /usr/include/termios.h, and are given
           in the comments, but we don't need them here
         */
-         newtio.c_cc[VINTR]    = 0;     /* Ctrl-c */ 
+         newtio.c_cc[VINTR]    = 0;     /* Ctrl-c */
          newtio.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
          newtio.c_cc[VERASE]   = 0;     /* del */
          newtio.c_cc[VKILL]    = 0;     /* @ */
@@ -168,7 +168,7 @@ int setup_serial_comm() {
          newtio.c_cc[VTIME]    = 5;     /* inter-character timer unused */
          newtio.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
          newtio.c_cc[VSWTC]    = 0;     /* '\0' */
-         newtio.c_cc[VSTART]   = 0;     /* Ctrl-q */ 
+         newtio.c_cc[VSTART]   = 0;     /* Ctrl-q */
          newtio.c_cc[VSTOP]    = 0;     /* Ctrl-s */
          newtio.c_cc[VSUSP]    = 0;     /* Ctrl-z */
          newtio.c_cc[VEOL]     = 0;     /* '\0' */
@@ -177,8 +177,8 @@ int setup_serial_comm() {
          newtio.c_cc[VWERASE]  = 0;     /* Ctrl-w */
          newtio.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
          newtio.c_cc[VEOL2]    = 0;     /* '\0' */
-        
-        /* 
+
+        /*
           now clean the modem line and activate the settings for the port
         */
          tcflush(ret_fd, TCIFLUSH);
@@ -220,7 +220,7 @@ void send_message( unsigned char p_msg_type, unsigned char p_buf[255], int p_len
 
 	for(int i=0; i<(p_len); i++)  {
 //		printf( " - variable  : %i \n", p_buf[i] );
-		v_send_buffer[(i+2)] = p_buf[i];		
+		v_send_buffer[(i+2)] = p_buf[i];
 	}
 	v_send_buffer[(p_len+2)] = getCRC(v_send_buffer, (p_len+2));
 //	printf( " - CRC sum   : %i \n", v_send_buffer[(p_len+2)] );
@@ -230,14 +230,14 @@ void send_message( unsigned char p_msg_type, unsigned char p_buf[255], int p_len
 		printf( "%02x ", v_send_buffer[i] );
 	}
 	printf( "%02x \n", MSG_END_CHAR );
-	
+
 //	printf( "----------------------------------\n" );
 	submit_send_buffer();
 }
 
 int read_incoming_message( unsigned char p_buf[255] ) {
 	int res;
-        /* read blocks program execution until a line terminating character is 
+        /* read blocks program execution until a line terminating character is
            input, even if more than 255 chars are input. If the number
            of characters read is smaller than the number of chars available,
            subsequent reads will return the remaining chars. res will be set
@@ -246,19 +246,19 @@ int read_incoming_message( unsigned char p_buf[255] ) {
 	if (res>0) {
 		while ((p_buf[0] != MSG_START_CHAR) && (res>0)) {
 			printf( "we got an INVALID start character %i\n", p_buf[0] );
-			res = read(serial_fd, p_buf, 1);	
+			res = read(serial_fd, p_buf, 1);
 		}
 //		printf( "we got a valid start character\n" );
 //sleep(2);
 		res = read(serial_fd, p_buf, 255);
 		for(int i=0; i<res; i++)  {
-//			printf( "Got char num : %i \n", p_buf[i] );
+			printf( "Got char num : %i \n", p_buf[i] );
 		}
 		// check message length and crc
-//		printf( "Length is %i \n", res );
-		if ((p_buf[1]+4) > res) { printf( "incomplete message\n" ); return (0); }
+		printf( "Length is %i \n", res );
+		if ((p_buf[1]+3) > res) { printf( "incomplete message\n" ); return (0); }
 		unsigned char v_crc = getCRC(p_buf, (res-2));
-//		printf( "calculated CRC is %i \n", v_crc );
+		printf( "calculated CRC is %i \n", v_crc );
 		if (p_buf[(res-2)] != v_crc) {
 			if (crc_err_counter < CRC_MAX_CRC_RESEND) {
 				printf( "CRC error - need to resend the message\n" );
@@ -296,7 +296,7 @@ void main() {
 	char *ccu_out_buf[255];
 
 
-	volatile int STOP=FALSE; 
+	volatile int STOP=FALSE;
 
 	/* Wait for 1.5 sec to enable the MCU to get online */
 	usleep (1500000);
@@ -354,6 +354,3 @@ void main() {
         /* restore the old port settings */
         tcsetattr(serial_fd, TCSANOW, &oldtio);
 }
-
-
-

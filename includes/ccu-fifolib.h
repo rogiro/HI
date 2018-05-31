@@ -27,6 +27,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+// ZeroMQ CCU sockets
+#define ZMQ_DCU_PUB        "tcp://*:5552"
+#define ZMQ_DCU_PULL       "tcp://*:5551"
+
 
 
 // -------------------------------------------------------------------------
@@ -43,10 +47,9 @@ typedef struct fifo_struct fifo_struct_t;
   char * fifo_re_filename = "/tmp/ccu-re";
   char * fifo_qh_filename = "/tmp/ccu-qh";
 
-// ZeroMQ IPC sockets
-  char * zmq_comm_pub_socket  = "ipc:///tmp/ccu-comm-pub";
-	char * zmq_pull_socket      = "ipc:////tmp/ccu-pull";
-	char * zmq_data_pub_socket  = "ipc:///tmp/ccu-data-pub";
+//  char * zmq_comm_pub_socket  = "ipc:///tmp/ccu-comm-pub";
+//	char * zmq_pull_socket      = "ipc:////tmp/ccu-pull";
+//	char * zmq_data_pub_socket  = "ipc:///tmp/ccu-data-pub";
 
 // -------------------------------------------------------------------------
 // Functions

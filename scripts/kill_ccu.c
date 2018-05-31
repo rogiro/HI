@@ -21,7 +21,7 @@
 #include <assert.h>
 
 
-#include  "ccu-memtypes.h"
+#include  "../includes/ccu-memtypes.h"
 
 #define ZMQ_CCU_RU_CONNECT "tcp://localhost:5550"
 

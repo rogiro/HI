@@ -24,8 +24,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include  "ccu-memtypes.h"
-#include  "ccu-fifolib.h"
+#include  "../includes/ccu-memtypes.h"
+#include  "../includes/ccu-fifolib.h"
 
 #define ZMQ_INPUT_BIND "tcp://*:5550"
 
@@ -116,7 +116,7 @@ int main (void)
 
           break;
 
-        case MSG_RU_REG_MCU : ;
+/*        case MSG_RU_REG_MCU : ;
 
           msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)zmq_in_msg+1);
           printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
@@ -133,9 +133,9 @@ int main (void)
 // add in shared mem the reg_id to the dcu
 // and ask a feedback to CCU if the MCU (reg_id) is known
 
-          break;
+          break; */
 
-        case MSG_RU_MCU_MAKE : ;
+  /*      case MSG_RU_MCU_MAKE : ;
 
           msg_mcu_make_t* inp_msg2 = (msg_mcu_make_t*) (zmq_in_msg+1);
           // will have to check if we can download the details of the MCU
@@ -147,7 +147,7 @@ int main (void)
 
           break;
 
-
+*/
 
           case MSG_RU_SHUTDOWN : ;
             write_fifo(fifo, zmq_in_msg, 1);
@@ -157,7 +157,9 @@ int main (void)
             zmq_send (zmq_responder, zmq_out_msg, 2, 0);
 
             break;
-//      default :
+        default :
+          printf( "ERROR - got a unknown message with MSG_TYPE = %i\n", (int)zmq_in_msg[0] );
+
       }
       zmq_msg_close (&zmq_in_msg_meta);
     }

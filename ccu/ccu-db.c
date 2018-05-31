@@ -32,8 +32,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include  "ccu-memtypes-db.h"
-#include  "ccu-fifolib.h"
+#include  "../includes/ccu-memtypes-db.h"
+#include  "../includes/ccu-fifolib.h"
 
 // -------------------------------------------------------------------------
 // Global variables
@@ -148,11 +148,11 @@ int main (void)
     msg_size = wait_fifo_msg (fifo, in_msg);
     if ( msg_size > 0 )  {
       //printf( "I got some message with id %i\n", ccu_in_message[0] );
-      switch ((int)in_msg[0]) {
+      switch ((int)in_msg[sizeof(int)]) {
         case MSG_RU_REG_MCU : ;
           printf( "I got a MCU registration request with payload %i.%i.%i.%i\n",
                   in_msg[1], in_msg[2], in_msg[3], in_msg[4] );
-          msg_reg_mcu_t* in_msg_fmt = (msg_reg_mcu_t*) ((char*)in_msg+1);
+          msg_reg_mcu_t* in_msg_fmt = (msg_reg_mcu_t*) (char*)in_msg;
 
           int* reg_header = (unsigned int*) in_msg_fmt->mcu_reg_id;
           short* reg_tail = (unsigned short*) &(in_msg_fmt->mcu_reg_id[4]);
@@ -170,15 +170,16 @@ int main (void)
             // we might go through the list to see if the id we generated is allready used and continue to loop it.
             // but for now I'll assume we did not run the new device routine 65535 times.
 
-            out_msg[0] = MSG_RU_SET_REGID;
-            memcpy( &(out_msg[1]), (void*) (in_msg+1), sizeof(msg_reg_mcu_t) );
-            out_msg[(sizeof(msg_reg_mcu_t)+1)] = 0;
-            printf("DEBUG OUT MSG = %i, %i, %i, %i, %i, %i, %i, %i\n", out_msg[0],out_msg[1],out_msg[2],out_msg[3],out_msg[4],out_msg[5],out_msg[6],out_msg[7]);
+            in_msg_fmt->msg_type = MSG_RU_SET_REGID;
+//            out_msg[0] = MSG_RU_SET_REGID;
+//            memcpy( &(out_msg[1]), (void*) (in_msg+1), sizeof(msg_reg_mcu_t) );
+//            out_msg[(sizeof(msg_reg_mcu_t)+1)] = 0;
+            printf("DEBUG OUT MSG = %i, %i, %i, %i, %i, %i, %i, %i\n", in_msg[0],in_msg[1],in_msg[2],in_msg[3],in_msg[4],in_msg[5],in_msg[6],in_msg[7]);
             printf("STRUCT SIZE = %i, %i, %i, %i, %i, %i, %i, %i\n", sizeof(int), sizeof(unsigned char), sizeof(msg_reg_mcu_t), sizeof(msg_reg_dcu_t), sizeof(struct msg_reg_mcu ) );
-            answer_fifo( fifo, out_msg, (sizeof(msg_reg_mcu_t)+2) );
+            answer_fifo( fifo, in_msg, sizeof(msg_reg_mcu_t) );
 
-            printf( "Response sent - %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n", (sizeof(msg_reg_mcu_t)+2), out_msg[1], out_msg[2],
-                      out_msg[3], out_msg[4], out_msg[5], out_msg[6], out_msg[7], out_msg[8], out_msg[9], out_msg[10], out_msg[11], out_msg[12], out_msg[13], out_msg[14] );
+            printf( "Response sent - %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n", (sizeof(msg_reg_mcu_t)+2), in_msg[1], in_msg[2],
+                      in_msg[3], in_msg[4], in_msg[5], in_msg[6], in_msg[7], in_msg[8], in_msg[9], in_msg[10], in_msg[11], in_msg[12], in_msg[13], in_msg[14] );
           } else {
 
             char* sql  = (char*) malloc( 4096 );
@@ -189,9 +190,9 @@ int main (void)
             int rows = PQntuples(res);
             free(sql);
             PQclear(res);
-
-            if	( rows == 1 )      { out_msg[0] = MSG_CCU_OK;	} // I should trigger the QH to send device listto DCU and initialization commands to MCU
-            else if	( rows == 0 )  { out_msg[0] = MSG_CCU_NOK;	} // Not known device -> should ask for Make / model and / or device list in eeprom
+            memcpy(out_msg,in_msg,sizeof(int));
+            if     	( rows == 1 )  { out_msg[sizeof(int)] = MSG_CCU_OK;	} // I should trigger the QH to send device listto DCU and initialization commands to MCU
+            else if	( rows == 0 )  { out_msg[sizeof(int)] = MSG_CCU_NOK;	} // Not known device -> should ask for Make / model and / or device list in eeprom
             else			{ out_msg[0] = MSG_CCU_ERR;	} // strange case... we need to investigate what happened here.
             out_msg[1] = 0;
 

@@ -27,8 +27,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include  "ccu-memtypes.h"
-#include  "ccu-fifolib.h"
+#include  "../includes/ccu-memtypes.h"
+#include  "../includes/ccu-fifolib.h"
 
 // -------------------------------------------------------------------------
 // Global variables
@@ -57,7 +57,7 @@ int main (void)
 
   // Initialize the shared memory structures
   init_mem_structures();
-printf("init done...\n");
+  printf("init done...\n");
 
   in_msg = malloc( MAX_MSGSIZE );
   int msg_size;
@@ -146,12 +146,48 @@ if (stay_alive) {
     free(connect_string);
 
     // all has been set up - we will do some debugging here...
-    char* buffer = malloc(50);
-    zmq_recv (zmq_dcu_pull, buffer, MAX_MSGSIZE, 0);
-    printf( "Received buffer character %i\n", buffer[0] );
-    buffer[0] = 9;
-    buffer[1] = 0;
-    zmq_send (zmq_dcu_push, buffer, 2, 0);
+    char* in_msg  = malloc(MAX_MSGSIZE-sizeof(int));
+    char* out_msg = malloc(MAX_MSGSIZE);
+    zmq_recv (zmq_dcu_pull, in_msg, MAX_MSGSIZE, 0);
+
+    switch ((int)in_msg[0]) {
+      case MSG_RU_REG_MCU : ;
+
+        msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)in_msg+1);
+        printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
+                          , (inp_msg1->mcu_reg_id)[2], (inp_msg1->mcu_reg_id)[3], (inp_msg1->mcu_reg_id)[4], (inp_msg1->mcu_reg_id)[5]);
+        out_msg[0] = in_msg[0];
+        memcpy( (out_msg+1), &(in_msg_fmt->dcu_id), sizeof(int) );
+        memcpy( (out_msg+1+sizeof(int)), (in_msg+1), sizeof(msg_reg_mcu_t*));
+
+        printf("receieved message %i %i %i %i %i %i %i \n", (char)in_msg[0], (char)in_msg[1], (char)in_msg[2], (char)in_msg[3],
+                  (char)in_msg[4], (char)in_msg[5], (char)in_msg[6] );
+        printf("outgoing message %i %i %i %i %i %i %i %i \n", (char)out_msg[0], (char)out_msg[1], (char)out_msg[2], (char)out_msg[3],
+                  (char)out_msg[4], (char)out_msg[5], (char)out_msg[6], (char)out_msg[7] );
+
+
+
+        // send the REG ID to the CCU to see if we know it
+        //write_fifo(fifo, zmq_in_msg, sizeof(msg_reg_mcu_t)+1);
+        //printf( "Waiting for a response from the CCU\n" );
+        //bytes_read = wait_fifo_answer( fifo, fifo_in_msg );
+
+        //printf( "Got the following response from the CCU: %i %i\n", fifo_in_msg[0], fifo_in_msg[1] );
+        //zmq_send (zmq_responder, fifo_in_msg, bytes_read, 0);
+
+      // add in shared mem the reg_id to the dcu
+      // and ask a feedback to CCU if the MCU (reg_id) is known
+
+        break;
+
+      default: ;
+      
+    }
+
+//    printf( "Received buffer character %i\n", buffer[0] );
+//    buffer[0] = 9;
+//    buffer[1] = 0;
+//    zmq_send (zmq_dcu_push, buffer, 2, 0);
 
   }
 

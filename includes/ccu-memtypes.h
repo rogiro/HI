@@ -104,22 +104,25 @@ struct msg_reg_dcu {
 	char ip_address[4];
 };
 struct msg_reg_mcu {
-	int dcu_id;
+  int  dcu_id;
+  char msg_type;
 	unsigned char mcu_reg_id[_REG_BYTES];
 };
 struct msg_mcu_make {
-	int dcu_id;
+  int  dcu_id;
+  char msg_type;
 	char manuf[4];
 	char model[6];
 	char version[4];
 };
 struct msg_set_dcu {
-	int dcu_id;
+	int  dcu_id;
   char dcu_ip[4];
-  int dcu_port;
+  int  dcu_port;
 };
 struct msg_unknown_mcu {
-	int dcu_id;
+  int  dcu_id;
+  char msg_type;
 	char mcu_reg_id[_REG_BYTES];
 };
 

@@ -28,15 +28,15 @@
 #include <unistd.h>
 
 
-#include  "ccu-memtypes.h"
-#include  "ccu-fifolib.h"
+#include  "../includes/ccu-memtypes.h"
+#include  "../includes/ccu-fifolib.h"
 
 
 // Global variables
   fifo_struct_t* fifo_db;
   fifo_struct_t* fifo_ru;
   fifo_struct_t* fifo_re;
-  fifo_struct_t* fifo_qh;
+//  fifo_struct_t* fifo_qh;
 
   bool stay_alive = 1;
 
@@ -51,36 +51,36 @@ void  main()
 
   printf( "Initializing internal communications\n" );
 
-// Set up the internal ZeroMQ queues for publishing commands
-// and pulling data from the DCU devices that will be used by the
-// Queue handler child processes.
-  void *zmq_context = zmq_ctx_new ();
-  void *zmq_dcu_publisher = zmq_socket (zmq_context, ZMQ_PUB);
-  int zmq_rc = zmq_bind (zmq_dcu_publisher, zmq_comm_pub_socket);
-  assert (zmq_rc == 0);
-  printf( " - DCU Publish socket initialized\n");
-  void *zmq_pull = zmq_socket (zmq_context, ZMQ_PULL);
-  zmq_rc = zmq_bind (zmq_pull, zmq_pull_socket);
-  assert (zmq_rc == 0);
-  printf( " - Command Pull socket initialized\n");
-  void *zmq_data_publisher = zmq_socket (zmq_context, ZMQ_PUB);
-  zmq_rc = zmq_bind (zmq_data_publisher, zmq_data_pub_socket);
-  assert (zmq_rc == 0);
-  printf( " - Data Publish socket initialized\n");
-
-
 // I could also fork the processes here - to see if this is what we'd want
 // But for now I'll be launching them in seperate shells to keep better control
   fifo_db = send_fifo_ready( fifo_db_filename ); printf( " - Database fifo ready\n" );
   fifo_ru = wait_fifo_ready( fifo_ru_filename ); printf( " - Registration Unit fifo ready\n" );
-  fifo_qh = send_fifo_ready( fifo_qh_filename ); printf( " - Queue Handler fifo ready\n" );
+//  fifo_qh = send_fifo_ready( fifo_qh_filename ); printf( " - Queue Handler fifo ready\n" );
 //	wait_for_fifo_ready( &fd_qh ); printf( " - got the CCU-QH process ready message\n" );
 //	wait_for_fifo_ready( &fd_re ); printf( " - got the CCU-RE process ready message\n" );
 
 // Initialize the shared memory structures
-printf("entering memtypes\n");
+  printf("entering memtypes\n");
   init_mem_structures();
-printf("exiting memtypes\n");
+  printf("exiting memtypes\n");
+
+// Initiliaze the extnernal communication queues
+  printf( "Initializing internal communications\n" );
+// Set up the eexternal ZeroMQ queues for publishing commands
+// and pulling data from the DCU devices.
+  void *zmq_context = zmq_ctx_new ();
+  void *zmq_dcu_pub = zmq_socket (zmq_context, ZMQ_PUB);
+  int zmq_rc = zmq_bind (zmq_dcu_pub, ZMQ_DCU_PUB);
+  assert (zmq_rc == 0);
+  printf( " - DCU Publish socket initialized\n");
+  void *zmq_dcu_pull = zmq_socket (zmq_context, ZMQ_PULL);
+  zmq_rc = zmq_bind (zmq_dcu_pull, ZMQ_DCU_PULL);
+  assert (zmq_rc == 0);
+  printf( " - Command Pull socket initialized\n");
+  //  void *zmq_data_publisher = zmq_socket (zmq_context, ZMQ_PUB);
+  //  zmq_rc = zmq_bind (zmq_data_publisher, zmq_data_pub_socket);
+  //  assert (zmq_rc == 0);
+  //  printf( " - Data Publish socket initialized\n");
 
 
 // debug routines used to dump the memory structures - will be moved to some header file
@@ -153,7 +153,7 @@ printf("exiting memtypes\n");
 	      int i=0;
 	      while ( (i<MAX_NR_OF_MCUS) && (mcu_stack_ptr[i].dcu_id >= 0) ) { i++; }
         if (i == MAX_NR_OF_MCUS ) {
-          printf("ERROR - Cannot register thie DCU - no more space let in array\n"); }
+          printf("ERROR - Cannot register this DCU - no more space let in array\n"); }
 	      else {
           memcpy( &(mcu_stack_ptr[i]), mcu_el, sizeof(mcu_stack_element_t) );
         }
@@ -165,7 +165,7 @@ printf("exiting memtypes\n");
 
         // send the message also to the QH so we can fork a processes
         // and communicate with the DCU through ZMQ queues
-        printf( "Informing Queue handler of the existance of a new DCU\n" );
+/*        printf( "Informing Queue handler of the existance of a new DCU\n" );
         printf( "msg details - %i %i %i %i %i %i %i %i %i\n", out_msg[0], out_msg[1], out_msg[2], out_msg[3], out_msg[4], out_msg[5], out_msg[6], out_msg[7], out_msg[8]);
         write_fifo( fifo_qh, out_msg, msg_size );
         wait_fifo_answer( fifo_qh, in_msg );
@@ -174,7 +174,7 @@ printf("exiting memtypes\n");
         } else {
           printf( "Queue handler has returned an Error when instructed to set up communication with new DCU\n" );
         }
-
+*/
         printf( "dumping the mcu_stack_ptr array\n");
         for (int i=0;i<MAX_NR_OF_MCUS;i++) {
           if ( mcu_stack_ptr[i].dcu_id > 0 ) {
@@ -187,7 +187,7 @@ printf("exiting memtypes\n");
 
         break;
 
-      case MSG_RU_REG_MCU : ;
+/*      case MSG_RU_REG_MCU : ;
         printf( "I got a MCU registration request of length %i with payload %i.%i.%i.%i\n",
                   in_read_char, in_msg[5], in_msg[6], in_msg[7], in_msg[8] );
 
@@ -199,14 +199,13 @@ printf("exiting memtypes\n");
                 in_read_char, in_msg[6], in_msg[7], in_msg[8], in_msg[9], in_msg[10], in_msg[11] );
       	answer_fifo(fifo_ru, in_msg, in_read_char );
 
-        break;
-
+        break; */
 
       case MSG_RU_SHUTDOWN : ;
         write_fifo(fifo_db, in_msg, in_read_char );
         char* kill_msg = malloc( 20 );
         memset((void*)kill_msg, 0, 2);
-        write_fifo(fifo_qh, kill_msg, 10 );
+//        write_fifo(fifo_qh, kill_msg, 10 );
 
         stay_alive = 0;
 
@@ -217,16 +216,121 @@ printf("exiting memtypes\n");
 
       ccu_pause();	// force a context switch and avoid hogging the system
     }
+
+// Look for messages on our ZMQ PULL queues
+
+  char* zmq_in_msg;
+  zmq_msg_t* zmq_input = malloc(sizeof(zmq_msg_t));
+  //printf( "starting ZMQ init message\n" );
+  zmq_msg_init (zmq_input);
+  //printf( "message initiated - will receive now\n" );
+  int rc = zmq_msg_recv (zmq_input, zmq_dcu_pull, ZMQ_NOBLOCK);
+
+  if (rc != -1) {
+    printf( "mWe have received a message\n" );
+    zmq_in_msg = zmq_msg_data(zmq_input);
+
+
+  switch ((int)zmq_in_msg[(sizeof(int))]) {
+
+    case MSG_RU_REG_MCU : ;
+
+      msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)zmq_in_msg+1);
+      printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
+                , (inp_msg1->mcu_reg_id)[2], (inp_msg1->mcu_reg_id)[3], (inp_msg1->mcu_reg_id)[4], (inp_msg1->mcu_reg_id)[5]);
+
+  // check message size //
+      if (zmq_msg_size(zmq_input) != sizeof(msg_reg_mcu_t)) {
+        printf( "ERROR - unexpected message size for a MCU registration message (%i vs %i) - skipping\n", zmq_msg_size(zmq_input), sizeof(msg_reg_mcu_t) );
+      } else {
+        write_fifo(fifo_db, zmq_in_msg, zmq_msg_size(zmq_input) );
+        in_read_char = wait_fifo_answer( fifo_db, in_msg );
+
+        printf( "I got a MCU registration answer of length %i with payload %i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i\n",
+                in_read_char, in_msg[0], in_msg[1], in_msg[2], in_msg[3], in_msg[4], in_msg[5],
+                in_msg[6], in_msg[7], in_msg[8], in_msg[9], in_msg[10], in_msg[11],
+                in_msg[12], in_msg[13], in_msg[14], in_msg[15], in_msg[16], in_msg[17] );
+
+        zmq_send(zmq_dcu_pub, in_msg, in_read_char, 0);
+        printf("MCU reg message has been published\n");
+      // send the REG ID to the CCU-DB to see if we know it
+//      write_fifo(fifo, zmq_in_msg, sizeof(msg_reg_mcu_t)+1);
+//      printf( "Waiting for a response from the CCU\n" );
+//      bytes_read = wait_fifo_answer( fifo, fifo_in_msg );
+
+//      printf( "Got the following response from the CCU-DB: %i %i\n", fifo_in_msg[0], fifo_in_msg[1] );
+//      zmq_send (zmq_dcu_pub, fifo_in_msg, bytes_read, 0);
+
+// add in shared mem the reg_id to the dcu
+// and ask a feedback to CCU if the MCU (reg_id) is known
+      }
+
+      break;
+
+    case MSG_RU_MCU_MAKE : ;
+
+      msg_mcu_make_t* inp_msg2 = (msg_mcu_make_t*) (zmq_in_msg+1);
+      // will have to check if we can download the details of the MCU
+      // however, I still need to clear out the format (json?) and precise content of the downloaded info
+      // so I will just allways respond a NOK message - disabling the functionality.
+//      zmq_out_msg[0] = MSG_CCU_NOK;
+//      zmq_out_msg[1] = 0;
+//      zmq_send (zmq_dcu_pub, zmq_out_msg, 2, 0);
+
+      break;
+
+    default :
+      printf( "ERROR - got a unknown message with MSG_TYPE = %i\n", (int)zmq_in_msg[0] );
+    }
+    zmq_msg_close (zmq_input);
+    free(zmq_input);
+    ccu_pause();
+  }
+
+
+// Look for the messages from the Queue Handler(s)
+/*    in_msg[0] = 0;
+    in_read_char = get_fifo_msg(fifo_qh, in_msg );
+    //if (in_read_char <= 0) { printf("got a RU \n" ); }
+    if (in_read_char > 0) { printf("got a QH message of type %i-%i\n", in_msg[0],in_read_char);
+    //printf( "in message first char = %i\n", in_msg[0]); sleep(1);
+      switch ((int)in_msg[0]) {
+
+        case MSG_RU_REG_MCU : ;
+          printf( "I got a MCU registration request of length %i with payload %i.%i.%i.%i\n",
+                          in_read_char, in_msg[5], in_msg[6], in_msg[7], in_msg[8] );
+
+          // route the message to the DB and return the DB answer 'as-is'
+          write_fifo(fifo_db, in_msg, in_read_char );
+          in_read_char = wait_fifo_answer( fifo_db, in_msg );
+
+          printf( "I got a MCU registration answer of length %i with payload %i.%i.%i.%i.%i.%i\n",
+                        in_read_char, in_msg[6], in_msg[7], in_msg[8], in_msg[9], in_msg[10], in_msg[11] );
+          answer_fifo(fifo_ru, in_msg, in_read_char );
+
+          break;
+
+//      default :
+
+      }
+    }
+*/
+
+
   }
 
 
 // -------------------------------------------------------------------------
 // Finalization
   // Close the FIFOs and finalize the memory structures
-  close_fifo (fifo_qh);
+//  close_fifo (fifo_qh);
   close_fifo (fifo_ru);
   close_fifo (fifo_db);
 
   finalize_mem_structs();
+
+  zmq_close (zmq_dcu_pub);
+  zmq_close (zmq_dcu_pull);
+  zmq_ctx_destroy (zmq_context);
 
 }
