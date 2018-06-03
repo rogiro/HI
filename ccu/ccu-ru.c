@@ -152,7 +152,7 @@ int main (void)
           case MSG_RU_SHUTDOWN : ;
             write_fifo(fifo, zmq_in_msg, 1);
             stay_alive = 0;
-            zmq_out_msg[0] = MSG_CCU_OK;
+            zmq_out_msg[0] = MSG_OK;
             zmq_out_msg[1] = 0;
             zmq_send (zmq_responder, zmq_out_msg, 2, 0);
 

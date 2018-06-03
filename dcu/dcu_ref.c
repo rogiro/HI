@@ -116,7 +116,7 @@ sleep (1);
 
     msg_reg_mcu_t* out_msg = (msg_reg_mcu_t*) (char*)buffer;
     out_msg->dcu_id = dcu_id;
-    out_msg->msg_type = MSG_RU_REG_MCU;
+    out_msg->msg_type = MSG_REG_MCU;
 
 //
 // For the MCU/DCU developper to add...

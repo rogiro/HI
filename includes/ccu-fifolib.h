@@ -69,7 +69,7 @@ fifo_struct_t* wait_fifo_ready( char* filename ) {
   str[0]=0;
   while (str[0]==0) {
     read(return_val->fd, str, 2);
-    if ( (str[0]!=MSG_CCU_READY) && (str[0]!=0) ) {
+    if ( (str[0]!=MSG_READY) && (str[0]!=0) ) {
       printf( "unexpected reponse from CCU-DB - I was waiting for an 'CCU_READY message but got an %hhx\n", str[0] );
     }
     ccu_pause();	// just to force a context switch and avoid hogging the system
@@ -88,7 +88,7 @@ fifo_struct_t* send_fifo_ready( char* filename ) {
   return_val->filename = filename;
 
   char str[2];
-  str[0] = MSG_CCU_READY;
+  str[0] = MSG_READY;
   str[1] = 0;
 
   write(return_val->fd, str, 2);

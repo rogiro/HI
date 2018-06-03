@@ -126,7 +126,7 @@ void  main()
         // Set the start values from which we will look for valid values
         mcu_el->dcu_id = 1;
         mcu_el->dcu_port    = _DCU_START_PORT;
-        mcu_el->status = MCU_STATUS_INIT;
+        mcu_el->status = STATUS_INIT;
 
         // Set the IP address.
         memcpy( mcu_el->dcu_ip, in_ip->ip_address, 4 );
@@ -238,7 +238,7 @@ void  main()
 
   switch ((int)zmq_in_msg[(sizeof(int))]) {
 
-    case MSG_RU_REG_MCU : ;
+    case MSG_REG_MCU : ;
 
       msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)zmq_in_msg+1);
       printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
@@ -272,7 +272,7 @@ void  main()
 
       break;
 
-    case MSG_RU_MCU_MAKE : ;
+    case MSG_SAMP_GET_MODEL : ;
 
       msg_mcu_make_t* inp_msg2 = (msg_mcu_make_t*) (zmq_in_msg+1);
       // will have to check if we can download the details of the MCU
