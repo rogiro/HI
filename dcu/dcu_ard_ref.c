@@ -30,7 +30,7 @@
 #include <termios.h>
 
 
-#include  "../includes/ccu-memtypes.h"
+#include  "../includes/hi_types.h"
 
 #define ZMQ_CCU_RU_CONNECT "tcp://localhost:5550"
 #define ZMQ_CCU_SUB        "tcp://localhost:5552"

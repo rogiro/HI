@@ -35,6 +35,11 @@
 #include  "../includes/ccu-memtypes-db.h"
 #include  "../includes/ccu-fifolib.h"
 
+
+#define _REG_HEADING_BYTES		50		// int4 representation of the first 4 bytes of the reg_id of the MCU when we set it
+							// should be stored in the DB, and when installing and registering the installation
+							// a unique int4 will be generated for each installation.
+
 // -------------------------------------------------------------------------
 // Global variables
 fifo_struct_t* fifo;
