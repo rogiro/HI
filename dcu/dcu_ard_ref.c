@@ -45,6 +45,8 @@
 // Global variables
   int  dcu_id;
   char buffer [MAX_MSGSIZE];
+  bool mcu_registered = 0;
+
 
   void *zmq_context;
   void *zmq_registrator;
@@ -63,7 +65,7 @@ const unsigned char MSG_START_CHAR = 50;
 const unsigned char MSG_END_CHAR = 13;
 
 
-#define MSGTYPE_OK 4
+/*#define MSGTYPE_OK 4
 #define MSGTYPE_NOK 5
 #define MSGTYPE_RESET 3
 #define MSGTYPE_TRANSMISSION_ERROR 8
@@ -92,7 +94,7 @@ const unsigned char MSG_END_CHAR = 13;
 #define MSGSUBTYPE_INVALID_MSG 2
 #define MSGSUBTYPE_MSG_OVERFLOW 3
 #define MSGSUBTYPE_UNEXPECTED_INPUT 4
-
+*/
 
 // These settings can not be changed during runtime
 #define REGISTRATION_BYTES 6
@@ -261,11 +263,11 @@ void send_transmission_error( unsigned char p_error_type ) {
 	unsigned char p_buf[1];
 	transmission_error++;
 	if ( transmission_error > MAX_TRANSMISSION_ERRORS ) {
-		send_control_message( MSGTYPE_RESET );
+		send_control_message( MSG_SAMP_RESET );
 //		transmission_error = 0;
 	} else {
 		p_buf[0] = p_error_type;
-		send_message( MSGTYPE_TRANSMISSION_ERROR, 1, p_buf );
+		send_message( MSG_SAMP_TRANSM_ERR, 1, p_buf );
 	}
 }
 
@@ -297,7 +299,7 @@ bool read_incoming_message() {
 			if ( (((cur_time.tv_sec - start_time.tv_sec)*1000
 			           +cur_time.tv_usec/1000) - start_time.tv_usec/1000 ) > MSG_TIMEOUT ) {
 				return_value = FALSE;
-				//send_transmission_error(MSGSUBTYPE_TIMEOUT_ON_START);
+				//send_transmission_error(ERR_TYPE_TIMEOUT);
 			}
 		}
 		while ((return_value) && !(read_complete)) {
@@ -314,7 +316,7 @@ bool read_incoming_message() {
 							read_complete = TRUE;
 						} else {
 							// invalid message
-							send_transmission_error(MSGSUBTYPE_INVALID_MSG);
+							send_transmission_error(ERR_TYPE_INV_MSG);
 printf( "unexpected end char %i\n ", read_char );
 							return_value = FALSE;
 						}
@@ -329,21 +331,21 @@ printf( "unexpected end char %i\n ", read_char );
 			if ( (((cur_time.tv_sec - start_time.tv_sec)*1000
 			           +cur_time.tv_usec/1000) - start_time.tv_usec/1000 ) > MSG_TIMEOUT ) {
 				return_value = FALSE;
-				send_transmission_error(MSGSUBTYPE_TIMEOUT);
+				send_transmission_error(ERR_TYPE_TIMEOUT);
 			}
 		}
 		if (read_complete) {
 //printf( "calculated CRC is %i \n", getCRC(p_buf, (read_indx-1)) );
 			if ( p_buf[(read_indx-1)] != getCRC(p_buf, (read_indx-1)) ) {
 				// CRC error
-				send_transmission_error(MSGSUBTYPE_CRCERROR);
+				send_transmission_error(ERR_TYPE_CRC_ERR);
 			} else {
 				// got a valid message - setting last rcv message for keep alive timeout
 				gettimeofday (&cur_time, NULL);
 				last_rcv_message_time = cur_time.tv_sec;
 
 				// if the emssage is a transmission error, I will handle it here not return it
-				if (p_buf[0] == MSGTYPE_TRANSMISSION_ERROR) {
+				if (p_buf[0] == MSG_SAMP_TRANSM_ERR) {
 					submit_send_buffer();
 					return_value = FALSE;
 				} else {
@@ -474,20 +476,20 @@ void main() {
 			flush_in_buffer();
 			/* Send a HELLO message */
 			if (!(in_message.type) ) {
-				send_control_message( MSGTYPE_HELLO );
+				send_control_message( MSG_SAMP_HELLO );
 				wait_for_in_message(10000);
 			}
-			if ( in_message.type == MSGTYPE_RESET ) {
+			if ( in_message.type == MSG_SAMP_RESET ) {
 				// expected to get this...
 				// no action needed as we will send another greeting
 printf( "Got a RESET message but I allready sent an HELLO\n" );
 			}
-			if ( in_message.type == MSGTYPE_REGISTRATION_ID ) {
+			if ( in_message.type == MSG_SAMP_SET_REGID ) {
 				printf( "got a request to register\n" );
 				// check with CCU if device is registered  ToDo
         msg_reg_mcu_t* out_msg = (msg_reg_mcu_t*) (char*)buffer;
         out_msg->dcu_id = dcu_id;
-        out_msg->msg_type = MSG_RU_REG_MCU;
+        out_msg->msg_type = MSG_REG_MCU;
         for (int i=0;i<in_message.len;i++) {
 					out_msg->mcu_reg_id[i] = in_message.vars[i];
 				}
@@ -512,9 +514,12 @@ printf( "Got a RESET message but I allready sent an HELLO\n" );
         mcu_registered = 1;
 
 				if (mcu_registered) {
-					send_control_message( MSGTYPE_OK );
+					send_control_message( MSG_OK );
 				} else  {
-					send_control_message( MSGTYPE_GET_CONFIG );
+          // We need to check all valid answers here
+          // and send an unexpected message error if needed
+
+		//			send_control_message( MSGTYPE_GET_CONFIG );
 				}
 				SETUP_MODE = FALSE;
 			} else {
@@ -526,13 +531,13 @@ printf( "Got a RESET message but I allready sent an HELLO\n" );
 		if (wait_for_in_message(0)) {
 //printf( "got a valid message of type %i\n", in_message.type );
 
-			if ( in_message.type == MSGTYPE_OK ) {
+			if ( in_message.type == MSG_OK ) {
 				printf( "got an OK\n" );
 			}
-			if ( in_message.type == MSGTYPE_NOK ) {
+			if ( in_message.type == MSG_NOK ) {
 				printf( "got an NOK\n" );
 			}
-			if ( in_message.type == MSGTYPE_REGISTRATION_ID ) {
+			if ( in_message.type == MSG_SAMP_GET_REGID ) {
 				printf( "MCU is sending me its registration id - I will set it, even if not in setup mode\n" );
 				for (int i=0;i<in_message.len;i++) {
 				registration_id[i] = in_message.vars[i];
@@ -540,15 +545,19 @@ printf( "Got a RESET message but I allready sent an HELLO\n" );
 				// check with CCU if device is registered  ToDo
 
 				if (TRUE) {
-					send_control_message( MSGTYPE_OK );
+					send_control_message( MSG_OK );
 				} else  {
-					send_control_message( MSGTYPE_GET_CONFIG );
+          // We need to check all expected messages
+          // and send an unexpected message error if needed
+
+
+	//				send_control_message( MSGTYPE_GET_CONFIG );
 				}
 			}
-			if ( in_message.type == MSGTYPE_GENERIC_ERROR ) {
+			if ( in_message.type == MSG_ERROR ) {
 				printf( "got an ERROR\n" );
 			}
-			if ( in_message.type == MSGTYPE_RESET ) {
+			if ( in_message.type == MSG_SAMP_RESET ) {
 				printf( "got a RESET REQUEST - will enter in SETUP_MODE\n" );
 				SETUP_MODE = TRUE;
 			}
@@ -562,7 +571,7 @@ printf( "Got a RESET message but I allready sent an HELLO\n" );
 //		printf( "checking time keep alive timeout - cur = %i , last = %i - sent =  %i\n", cur_time.tv_sec, last_sent_message_time, last_rcv_message_time );
 		if ( ( ( cur_time.tv_sec - last_sent_message_time ) > KEEP_ALIVE_FREQ ) && ( KEEP_ALIVE_FREQ > 0 ) ) {
 //			printf( "keep alive freq reached - we will send a keep alive message\n" );
-			send_control_message( MSGTYPE_KEEPALIVE );
+			send_control_message( MSG_SAMP_KEEPALIVE );
 		}
 		// Check if last received message is younger than the set timeout
 		if ( ( ( cur_time.tv_sec - last_rcv_message_time ) > KEEP_ALIVE_TIMEOUT ) && ( KEEP_ALIVE_TIMEOUT > 0 )) {

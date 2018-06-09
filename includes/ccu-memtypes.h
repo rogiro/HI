@@ -75,6 +75,7 @@
 #define MSG_SAMP_GET_DEVICE   107
 #define MSG_SAMP_SET_DEVICE   108
 #define MSG_SAMP_KEEPALIVE    109
+#define MSG_SAMP_TRANSM_ERR   110
 
 struct dev_stack_element {
   short	page_nr;
