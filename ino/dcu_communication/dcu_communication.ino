@@ -1,6 +1,8 @@
 #include <EEPROM.h>
 #include <SoftwareSerial.h>
 
+#include  <../../includes/hi_types.h>
+
 
 // Some general configuration data for the Serial communication
 const long SerialTimeout        = 500;
