@@ -236,28 +236,28 @@ void  main()
     zmq_in_msg = zmq_msg_data(zmq_input);
 
 
-  switch ((int)zmq_in_msg[(sizeof(int))]) {
+    switch ((int)zmq_in_msg[(sizeof(int))]) {
 
-    case MSG_REG_MCU : ;
+      case MSG_REG_MCU : ;
 
-      msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)zmq_in_msg+1);
-      printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
+        msg_reg_mcu_t* inp_msg1 = (msg_reg_mcu_t*) ((char*)zmq_in_msg+1);
+        printf( "got a REG_MCU request with reg id %i %i %i %i %i %i\n", (inp_msg1->mcu_reg_id)[0], (inp_msg1->mcu_reg_id)[1]
                 , (inp_msg1->mcu_reg_id)[2], (inp_msg1->mcu_reg_id)[3], (inp_msg1->mcu_reg_id)[4], (inp_msg1->mcu_reg_id)[5]);
 
   // check message size //
-      if (zmq_msg_size(zmq_input) != sizeof(msg_reg_mcu_t)) {
-        printf( "ERROR - unexpected message size for a MCU registration message (%i vs %i) - skipping\n", zmq_msg_size(zmq_input), sizeof(msg_reg_mcu_t) );
-      } else {
-        write_fifo(fifo_db, zmq_in_msg, zmq_msg_size(zmq_input) );
-        in_read_char = wait_fifo_answer( fifo_db, in_msg );
+        if (zmq_msg_size(zmq_input) != sizeof(msg_reg_mcu_t)) {
+          printf( "ERROR - unexpected message size for a MCU registration message (%i vs %i) - skipping\n", zmq_msg_size(zmq_input), sizeof(msg_reg_mcu_t) );
+        } else {
+          write_fifo(fifo_db, zmq_in_msg, zmq_msg_size(zmq_input) );
+          in_read_char = wait_fifo_answer( fifo_db, in_msg );
 
-        printf( "I got a MCU registration answer of length %i with payload %i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i\n",
+          printf( "I got a MCU registration answer of length %i with payload %i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i.%i\n",
                 in_read_char, in_msg[0], in_msg[1], in_msg[2], in_msg[3], in_msg[4], in_msg[5],
                 in_msg[6], in_msg[7], in_msg[8], in_msg[9], in_msg[10], in_msg[11],
                 in_msg[12], in_msg[13], in_msg[14], in_msg[15], in_msg[16], in_msg[17] );
 
-        zmq_send(zmq_dcu_pub, in_msg, in_read_char, 0);
-        printf("MCU reg message has been published\n");
+          zmq_send(zmq_dcu_pub, in_msg, in_read_char, 0);
+          printf("MCU reg message has been published\n");
       // send the REG ID to the CCU-DB to see if we know it
 //      write_fifo(fifo, zmq_in_msg, sizeof(msg_reg_mcu_t)+1);
 //      printf( "Waiting for a response from the CCU\n" );
@@ -268,13 +268,13 @@ void  main()
 
 // add in shared mem the reg_id to the dcu
 // and ask a feedback to CCU if the MCU (reg_id) is known
-      }
+        }
 
-      break;
+        break;
 
-    case MSG_SAMP_GET_MODEL : ;
+      case MSG_SAMP_GET_MODEL : ;
 
-      msg_mcu_make_t* inp_msg2 = (msg_mcu_make_t*) (zmq_in_msg+1);
+        msg_mcu_make_t* inp_msg2 = (msg_mcu_make_t*) (zmq_in_msg+1);
       // will have to check if we can download the details of the MCU
       // however, I still need to clear out the format (json?) and precise content of the downloaded info
       // so I will just allways respond a NOK message - disabling the functionality.
@@ -282,15 +282,15 @@ void  main()
 //      zmq_out_msg[1] = 0;
 //      zmq_send (zmq_dcu_pub, zmq_out_msg, 2, 0);
 
-      break;
+        break;
 
-    default :
-      printf( "ERROR - got a unknown message with MSG_TYPE = %i\n", (int)zmq_in_msg[0] );
+      default :
+        printf( "ERROR - got a unknown message with MSG_TYPE = %i\n", (int)zmq_in_msg[0] );
+      }
     }
     zmq_msg_close (zmq_input);
     free(zmq_input);
     ccu_pause();
-  }
 
 
 // Look for the messages from the Queue Handler(s)
