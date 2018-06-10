@@ -31,6 +31,7 @@
 
 
 #include  "../includes/hi_types.h"
+#include  "../includes/hi_structs.h"
 
 #define ZMQ_CCU_RU_CONNECT "tcp://localhost:5550"
 #define ZMQ_CCU_SUB        "tcp://localhost:5552"

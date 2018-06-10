@@ -19,6 +19,7 @@
 #include  <sys/shm.h>
 
 #include  "hi_types.h"
+#include  "hi_structs.h"
 
 
 #define	SHARED_MEM_PAGE_SIZE		65535

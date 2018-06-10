@@ -2,6 +2,7 @@
 #include <SoftwareSerial.h>
 
 #include  "../../includes/hi_types.h>"
+//#include  "../../includes/hi_structs.h"
 
 
 // Some general configuration data for the Serial communication
