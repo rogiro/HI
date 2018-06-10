@@ -288,9 +288,6 @@ void  main()
         printf( "ERROR - got a unknown message with MSG_TYPE = %i\n", (int)zmq_in_msg[0] );
       }
     }
-    zmq_msg_close (zmq_input);
-    free(zmq_input);
-    ccu_pause();
 
 
 // Look for the messages from the Queue Handler(s)
@@ -322,6 +319,9 @@ void  main()
 */
 
 
+    zmq_msg_close (zmq_input);
+    free(zmq_input);
+    ccu_pause();
   }
 
 
